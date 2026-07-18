@@ -22,7 +22,6 @@ Desktop, then invoked as a custom column or standalone step.
 | `fn_SubInertialFilter.m` | Moving-average low-pass filter (approximates sub-inertial signal) |
 | `fn_QCFlag.m` | Range-based QC flag (1 = pass, 4 = fail) |
 | `fn_KnotsToMs.m`, `fn_MsToKnots.m`, `fn_DbarToMetres.m` | Unit conversions |
-<<<<<<< HEAD
 | `fn_HaversineDistance.m` | Great-circle distance between two lat/lon points |
 
 **`dax/oceanlib_udfs.dax`** -- DAX user-defined functions (Power BI
