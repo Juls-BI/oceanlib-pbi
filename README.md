@@ -1,10 +1,9 @@
-<<<<<<< HEAD
-=======
+
 ![License](https://img.shields.io/badge/license-MIT-green)
 ![Power BI](https://img.shields.io/badge/Power%20BI-yellow?logo=powerbi&logoColor=white)
 ![Power Query M / DAX UDF](https://img.shields.io/badge/Power%20Query%20M%20%2F%20DAX%20UDF-blue)
 
->>>>>>> b557a84ba46aac06946abdc11f6c953812703833
+
 # oceanlib (Power Query + DAX edition)
 
 A small physical-oceanography toolkit built entirely in M (Power
