@@ -1,0 +1,102 @@
+// Example DAX user-defined functions (Power BI Desktop / Service,
+// June 2026 GA release onward). No Python or M numerics needed here --
+// just DAX operating on small tables already loaded into the model.
+
+// =================================================================
+// BEFORE YOU CAN USE TidalForecast BELOW:
+// =================================================================
+// This function reconstructs a tide from known harmonic constituents
+// (frequency, amplitude, phase per constituent, e.g. M2, S2, K1, O1).
+// It does NOT derive those constituents from raw data -- fitting them
+// requires a least-squares solve, which isn't practical in DAX or M.
+//
+// So before this UDF is usable, you need a small `Constituents` table
+// with columns: Frequency_cph, Amplitude, Phase_deg. Get that table
+// one of two ways:
+//
+//   1. Published constituents for a real station -- e.g. NOAA CO-OPS
+//      (US stations, freely available via their API/website) or
+//      UKHO/Admiralty tide tables (UK stations). Pull the values once
+//      and load them as a static table.
+//   2. A one-off harmonic fit done outside Power BI -- e.g. if you
+//      still have old MATLAB T_TIDE/UTide output from university, or
+//      ask someone to run the fit once in Python/R/MATLAB -- and load
+//      just the resulting amplitude/phase/frequency table here.
+//
+// Either way, this UDF only ever needs that small table as input --
+// never the raw time series, and never Python at query time.
+// =================================================================
+
+DEFINE
+/// Reconstructs tide height at a given number of hours since t0,
+/// from a loaded constituent table.
+/// @param {NUMERIC} HoursSinceT0 - elapsed hours since the reference time
+/// @param {NUMERIC} MeanLevel - constant offset (e.g. Z0 / mean sea level)
+/// @returns Reconstructed elevation
+FUNCTION TidalForecast = (
+    HoursSinceT0 : NUMERIC,
+    MeanLevel : NUMERIC = 0
+) =>
+    MeanLevel +
+    SUMX(
+        Constituents,
+        [Amplitude] *
+        COS(
+            2 * PI() * [Frequency_cph] * HoursSinceT0
+            - RADIANS([Phase_deg])
+        )
+    )
+
+EVALUATE
+{ TidalForecast(6.2, 0) }  // example: elevation 6.2 hours after t0
+
+
+// ---------------------------------------------------------------
+// Simplified density lookup (same formula as fn_ApproxDensity.m) --
+// use whichever of the DAX or M version fits where you need it in
+// your model/query.
+// ---------------------------------------------------------------
+DEFINE
+/// Rough linearised seawater density estimate (kg/m^3).
+/// @param {NUMERIC} TemperatureC - in-situ temperature, deg C
+/// @param {NUMERIC} SalinityPSU - practical salinity
+/// @returns Approximate density, kg/m^3
+FUNCTION ApproxDensity = (
+    TemperatureC : NUMERIC,
+    SalinityPSU : NUMERIC
+) =>
+    1000
+    + 0.78 * SalinityPSU
+    - 0.20 * TemperatureC
+    - 0.0055 * POWER(TemperatureC, 2)
+
+EVALUATE
+{ ApproxDensity(12, 35) }
+
+
+// ---------------------------------------------------------------
+// Mackenzie sound speed (same formula as fn_SoundSpeedMackenzie.m)
+// ---------------------------------------------------------------
+DEFINE
+/// Mackenzie (1981) empirical speed of sound in seawater (m/s).
+/// @param {NUMERIC} TemperatureC
+/// @param {NUMERIC} SalinityPSU
+/// @param {NUMERIC} DepthM
+/// @returns Speed of sound, m/s
+FUNCTION SoundSpeedMackenzie = (
+    TemperatureC : NUMERIC,
+    SalinityPSU : NUMERIC,
+    DepthM : NUMERIC
+) =>
+    1448.96
+    + 4.591 * TemperatureC
+    - 5.304E-2 * POWER(TemperatureC, 2)
+    + 2.374E-4 * POWER(TemperatureC, 3)
+    + 1.340 * (SalinityPSU - 35)
+    + 1.630E-2 * DepthM
+    + 1.675E-7 * POWER(DepthM, 2)
+    - 1.025E-2 * TemperatureC * (SalinityPSU - 35)
+    - 7.139E-13 * TemperatureC * POWER(DepthM, 3)
+
+EVALUATE
+{ SoundSpeedMackenzie(12, 35, 100) }
