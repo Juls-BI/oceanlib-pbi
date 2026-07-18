@@ -81,15 +81,24 @@ publicly documented equation, not a derived/fitted result, so there's
 no equivalent "external fit" step needed here -- it just has a
 validity range to keep in mind.
 
-## QC flag caveat
+## QC flag
 
-`fn_QCFlag.m` only does a range test (is the value within valid
-min/max) -- it does not do spike/neighbour-based detection, since
-that needs access to adjacent rows, not just a single cell. If you
-want spike detection too, it would need to run as a step over the
-whole column (e.g. comparing each row to the previous/next in a
-Power Query table transform) rather than as a simple per-value
-function like this one.
+`fn_QCFlag.m` checks a single numeric measurement -- e.g. a
+temperature, salinity, elevation, or current speed reading -- against
+a valid range you supply, and returns a flag: `1` (pass) if the value
+falls within `ValidMin`/`ValidMax`, `4` (fail) if it's outside that
+range or blank/null. The valid range is up to you to set per
+variable (e.g. temperature might be 0-35°C, salinity 0-40 PSU) --
+the function itself has no built-in sense of what's "normal" for any
+particular measurement.
+
+**Caveat:** it only does this range check -- it does not detect
+spikes (a value that jumps abnormally compared to its neighbours),
+since that needs access to adjacent rows, not just a single cell.
+If you also want spike detection, that would need to run as a
+separate step over the whole column (e.g. comparing each row to the
+one before/after it in a Power Query table transform) rather than as
+a simple per-value function like this one.
 
 ## Unit conversions
 
