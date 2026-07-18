@@ -3,6 +3,33 @@
 // just DAX operating on small tables already loaded into the model.
 
 // =================================================================
+// IMPORTANT: DAX has no native ATAN2 function (unlike Excel or M),
+// despite several of the formulas below needing one. This is a
+// small, standard workaround (the same pattern used throughout the
+// Power BI community for this) that every other function here calls
+// internally.
+// =================================================================
+DEFINE
+/// Replicates atan2(y, x) since DAX has no built-in equivalent.
+/// @param {NUMERIC} Y
+/// @param {NUMERIC} X
+/// @returns Angle in radians, -pi to pi
+FUNCTION Atan2 = (
+    Y : NUMERIC,
+    X : NUMERIC
+) =>
+    SWITCH(
+        TRUE(),
+        X > 0, ATAN(Y / X),
+        X < 0 && Y >= 0, ATAN(Y / X) + PI(),
+        X < 0 && Y < 0, ATAN(Y / X) - PI(),
+        X = 0 && Y > 0, PI() / 2,
+        X = 0 && Y < 0, 0 - PI() / 2,
+        BLANK()
+    )
+
+
+// =================================================================
 // BEFORE YOU CAN USE TidalForecast BELOW:
 // =================================================================
 // This function reconstructs a tide from known harmonic constituents
@@ -103,10 +130,8 @@ EVALUATE
 
 
 // ---------------------------------------------------------------
-// Great-circle distance between two lat/lon points (same formula as
-// fn_HaversineDistance.m). There's no built-in distance function in
-// DAX -- this is built from the underlying trig functions (SIN, COS,
-// ATAN2), which is the standard community approach for this.
+// Great-circle distance between two lat/lon points (Haversine).
+// Uses the Atan2 helper defined above -- DAX has no native ATAN2.
 // ---------------------------------------------------------------
 DEFINE
 /// Great-circle distance between two lat/lon points (Haversine formula).
@@ -129,9 +154,139 @@ FUNCTION HaversineDistance = (
     VAR A =
         SIN(DeltaPhi / 2) * SIN(DeltaPhi / 2)
         + COS(Phi1) * COS(Phi2) * SIN(DeltaLambda / 2) * SIN(DeltaLambda / 2)
-    VAR C = 2 * ATAN2(SQRT(1 - A), SQRT(A))
+    VAR C = 2 * Atan2(SQRT(A), SQRT(1 - A))
     RETURN
         EarthRadiusM * C
 
 EVALUATE
 { HaversineDistance(53.4808, -2.2426, 51.5074, -0.1278) }  // Manchester to London, ~262 km
+
+
+// ---------------------------------------------------------------
+// Initial bearing (forward azimuth) from point 1 to point 2, in
+// degrees from true north (0-360). Pairs with HaversineDistance --
+// distance tells you how far, this tells you which direction.
+// ---------------------------------------------------------------
+DEFINE
+/// Initial bearing from point 1 to point 2, degrees from true north.
+/// @param {NUMERIC} Lat1
+/// @param {NUMERIC} Lon1
+/// @param {NUMERIC} Lat2
+/// @param {NUMERIC} Lon2
+/// @returns Bearing in degrees, 0-360
+FUNCTION InitialBearing = (
+    Lat1 : NUMERIC,
+    Lon1 : NUMERIC,
+    Lat2 : NUMERIC,
+    Lon2 : NUMERIC
+) =>
+    VAR Phi1 = RADIANS(Lat1)
+    VAR Phi2 = RADIANS(Lat2)
+    VAR DeltaLambda = RADIANS(Lon2 - Lon1)
+    VAR Y = SIN(DeltaLambda) * COS(Phi2)
+    VAR X = COS(Phi1) * SIN(Phi2) - SIN(Phi1) * COS(Phi2) * COS(DeltaLambda)
+    VAR ThetaDeg = DEGREES(Atan2(Y, X))
+    RETURN
+        MOD(ThetaDeg + 360, 360)
+
+EVALUATE
+{ InitialBearing(53.4808, -2.2426, 51.5074, -0.1278) }  // ~146 degrees (SE)
+
+
+// ---------------------------------------------------------------
+// Destination point: given a start point, bearing, and distance,
+// where do you end up. The reverse of the two functions above.
+// Returns latitude and longitude as two separate scalar functions,
+// since DAX UDFs return a single value.
+// ---------------------------------------------------------------
+DEFINE
+/// Destination latitude given a start point, bearing, and distance.
+/// @param {NUMERIC} Lat1 - start latitude, decimal degrees
+/// @param {NUMERIC} Lon1 - start longitude, decimal degrees
+/// @param {NUMERIC} BearingDeg - initial bearing, degrees from true north
+/// @param {NUMERIC} DistanceM - distance to travel, metres
+/// @returns Destination latitude, decimal degrees
+FUNCTION DestinationLat = (
+    Lat1 : NUMERIC,
+    Lon1 : NUMERIC,
+    BearingDeg : NUMERIC,
+    DistanceM : NUMERIC
+) =>
+    VAR EarthRadiusM = 6371000
+    VAR Delta = DistanceM / EarthRadiusM
+    VAR Theta = RADIANS(BearingDeg)
+    VAR Phi1 = RADIANS(Lat1)
+    VAR Phi2 = ASIN(SIN(Phi1) * COS(Delta) + COS(Phi1) * SIN(Delta) * COS(Theta))
+    RETURN
+        DEGREES(Phi2)
+
+/// Destination longitude given a start point, bearing, and distance.
+/// @param {NUMERIC} Lat1 - start latitude, decimal degrees
+/// @param {NUMERIC} Lon1 - start longitude, decimal degrees
+/// @param {NUMERIC} BearingDeg - initial bearing, degrees from true north
+/// @param {NUMERIC} DistanceM - distance to travel, metres
+/// @returns Destination longitude, decimal degrees
+FUNCTION DestinationLon = (
+    Lat1 : NUMERIC,
+    Lon1 : NUMERIC,
+    BearingDeg : NUMERIC,
+    DistanceM : NUMERIC
+) =>
+    VAR EarthRadiusM = 6371000
+    VAR Delta = DistanceM / EarthRadiusM
+    VAR Theta = RADIANS(BearingDeg)
+    VAR Phi1 = RADIANS(Lat1)
+    VAR Lambda1 = RADIANS(Lon1)
+    VAR Phi2 = ASIN(SIN(Phi1) * COS(Delta) + COS(Phi1) * SIN(Delta) * COS(Theta))
+    VAR Lambda2 = Lambda1 + Atan2(
+        SIN(Theta) * SIN(Delta) * COS(Phi1),
+        COS(Delta) - SIN(Phi1) * SIN(Phi2)
+    )
+    RETURN
+        DEGREES(Lambda2)
+
+EVALUATE
+{ DestinationLat(53.4808, -2.2426, 146.03, 261983) }  // should land close to London
+EVALUATE
+{ DestinationLon(53.4808, -2.2426, 146.03, 261983) }
+
+
+// ---------------------------------------------------------------
+// Practical salinity from conductivity ratio (PSS-78, UNESCO 1981).
+// A published, standard formula -- not something we've derived.
+// ---------------------------------------------------------------
+DEFINE
+/// Practical salinity from conductivity ratio, PSS-78 (UNESCO 1981),
+/// at atmospheric pressure (no pressure correction term applied).
+/// @param {NUMERIC} ConductivityRatio - Rt, conductivity ratio relative to standard seawater at the same temperature
+/// @param {NUMERIC} TemperatureC - in-situ temperature, deg C
+/// @returns Practical salinity, PSU
+FUNCTION PracticalSalinity = (
+    ConductivityRatio : NUMERIC,
+    TemperatureC : NUMERIC
+) =>
+    VAR R = ConductivityRatio
+    VAR T = TemperatureC
+    VAR K = 0.0162
+    VAR BaseTerm =
+        0.0080
+        - 0.1692 * POWER(R, 0.5)
+        + 25.3851 * R
+        + 14.0941 * POWER(R, 1.5)
+        - 7.0261 * POWER(R, 2)
+        + 2.7081 * POWER(R, 2.5)
+    VAR TempCorrection =
+        (T - 15) / (1 + K * (T - 15))
+        * (
+            0.0005
+            - 0.0056 * POWER(R, 0.5)
+            - 0.0066 * R
+            - 0.0375 * POWER(R, 1.5)
+            + 0.0636 * POWER(R, 2)
+            - 0.0144 * POWER(R, 2.5)
+        )
+    RETURN
+        BaseTerm + TempCorrection
+
+EVALUATE
+{ PracticalSalinity(1.0, 15) }  // R=1.0 at T=15C should return ~35 PSU
