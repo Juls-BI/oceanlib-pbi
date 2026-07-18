@@ -59,6 +59,45 @@ your latitude. It's a reasonable approximation, not a research-grade
 filter -- there will be some edge effects and less clean frequency
 separation than a proper filter design would give.
 
+## Density caveat
+
+`fn_ApproxDensity.m` / `ApproxDensity` (DAX) use a simplified,
+linearised formula -- not the full TEOS-10 equation of state, which is
+a large polynomial fit that isn't practical to hand-code in M or DAX.
+This is fine for a rough estimate or a quick in-model lookup, but
+don't rely on it where accuracy matters (e.g. anything feeding a
+scientific calculation downstream). If you need TEOS-10-accurate
+density, the practical route is to compute it once elsewhere (e.g.
+the TEOS-10 GSW toolbox, or an online calculator) and load the
+results as a table, the same pattern as the tidal constituents above.
+
+## Sound speed caveat
+
+`fn_SoundSpeedMackenzie.m` / `SoundSpeedMackenzie` (DAX) use the
+Mackenzie (1981) empirical equation, valid roughly for temperature
+-2 to 30°C, salinity 30-40 PSU, and depth 0-8000 m. Outside that
+range the formula isn't guaranteed accurate. It's a widely used,
+publicly documented equation, not a derived/fitted result, so there's
+no equivalent "external fit" step needed here -- it just has a
+validity range to keep in mind.
+
+## QC flag caveat
+
+`fn_QCFlag.m` only does a range test (is the value within valid
+min/max) -- it does not do spike/neighbour-based detection, since
+that needs access to adjacent rows, not just a single cell. If you
+want spike detection too, it would need to run as a step over the
+whole column (e.g. comparing each row to the previous/next in a
+Power Query table transform) rather than as a simple per-value
+function like this one.
+
+## Unit conversions
+
+`fn_KnotsToMs.m`, `fn_MsToKnots.m`, and `fn_DbarToMetres.m` are exact
+conversions (or, for dbar-to-metres, the standard oceanographic
+approximation that 1 dbar ≈ 1 m) -- no caveats beyond what's noted in
+each file's comments.
+
 ## Licensing
 
 Everything here is original formulas or hand-written M/DAX -- no
