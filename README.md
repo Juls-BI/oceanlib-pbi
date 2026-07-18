@@ -1,10 +1,8 @@
+# oceanlib (Power Query + DAX edition)
 
 ![License](https://img.shields.io/badge/license-MIT-green)
 ![Power BI](https://img.shields.io/badge/Power%20BI-yellow?logo=powerbi&logoColor=white)
 ![Power Query M / DAX UDF](https://img.shields.io/badge/Power%20Query%20M%20%2F%20DAX%20UDF-blue)
-
-
-# oceanlib (Power Query + DAX edition)
 
 A small physical-oceanography toolkit built entirely in M (Power
 Query) and DAX -- no Python required anywhere in this version.
@@ -28,13 +26,6 @@ Desktop, then invoked as a custom column or standalone step.
 Desktop/Service, June 2026 GA onward): `TidalForecast`, `ApproxDensity`,
 `SoundSpeedMackenzie`, `HaversineDistance`. These are model-level
 functions you can call from any measure.
-=======
-
-**`dax/oceanlib_udfs.dax`** -- DAX user-defined functions (Power BI
-Desktop/Service, June 2026 GA onward): `TidalForecast`, `ApproxDensity`,
-`SoundSpeedMackenzie`. These are model-level functions you can call
-from any measure.
->>>>>>> b557a84ba46aac06946abdc11f6c953812703833
 
 ## Tides: what has to happen before you can forecast
 
@@ -91,17 +82,6 @@ publicly documented equation, not a derived/fitted result, so there's
 no equivalent "external fit" step needed here -- it just has a
 validity range to keep in mind.
 
-<<<<<<< HEAD
-## QC flag caveat
-
-`fn_QCFlag.m` only does a range test (is the value within valid
-min/max) -- it does not do spike/neighbour-based detection, since
-that needs access to adjacent rows, not just a single cell. If you
-want spike detection too, it would need to run as a step over the
-whole column (e.g. comparing each row to the previous/next in a
-Power Query table transform) rather than as a simple per-value
-function like this one.
-=======
 ## QC flag
 
 `fn_QCFlag.m` checks a single numeric measurement -- e.g. a
@@ -120,7 +100,6 @@ If you also want spike detection, that would need to run as a
 separate step over the whole column (e.g. comparing each row to the
 one before/after it in a Power Query table transform) rather than as
 a simple per-value function like this one.
->>>>>>> b557a84ba46aac06946abdc11f6c953812703833
 
 ## Unit conversions
 
@@ -129,7 +108,6 @@ conversions (or, for dbar-to-metres, the standard oceanographic
 approximation that 1 dbar ≈ 1 m) -- no caveats beyond what's noted in
 each file's comments.
 
-<<<<<<< HEAD
 ## Distance between coordinates
 
 `fn_HaversineDistance.m` / `HaversineDistance` (DAX) calculate the
@@ -161,8 +139,6 @@ function.
   UDFs, since the DAX UDF feature itself only reached general
   availability in June 2026.
 
-=======
->>>>>>> b557a84ba46aac06946abdc11f6c953812703833
 ## Licensing
 
 Everything here is original formulas or hand-written M/DAX -- no
