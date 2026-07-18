@@ -1,4 +1,4 @@
-# oceanlib (Power Query + DAX edition)
+# Oceanography Library (Power Query + DAX edition)
 
 ![License](https://img.shields.io/badge/license-MIT-green)
 ![Power BI](https://img.shields.io/badge/Power%20BI-yellow?logo=powerbi&logoColor=white)
