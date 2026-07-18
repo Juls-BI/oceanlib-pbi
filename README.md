@@ -1,3 +1,10 @@
+<<<<<<< HEAD
+=======
+![License](https://img.shields.io/badge/license-MIT-green)
+![Power BI](https://img.shields.io/badge/Power%20BI-yellow?logo=powerbi&logoColor=white)
+![Power Query M / DAX UDF](https://img.shields.io/badge/Power%20Query%20M%20%2F%20DAX%20UDF-blue)
+
+>>>>>>> b557a84ba46aac06946abdc11f6c953812703833
 # oceanlib (Power Query + DAX edition)
 
 A small physical-oceanography toolkit built entirely in M (Power
@@ -16,12 +23,20 @@ Desktop, then invoked as a custom column or standalone step.
 | `fn_SubInertialFilter.m` | Moving-average low-pass filter (approximates sub-inertial signal) |
 | `fn_QCFlag.m` | Range-based QC flag (1 = pass, 4 = fail) |
 | `fn_KnotsToMs.m`, `fn_MsToKnots.m`, `fn_DbarToMetres.m` | Unit conversions |
+<<<<<<< HEAD
 | `fn_HaversineDistance.m` | Great-circle distance between two lat/lon points |
 
 **`dax/oceanlib_udfs.dax`** -- DAX user-defined functions (Power BI
 Desktop/Service, June 2026 GA onward): `TidalForecast`, `ApproxDensity`,
 `SoundSpeedMackenzie`, `HaversineDistance`. These are model-level
 functions you can call from any measure.
+=======
+
+**`dax/oceanlib_udfs.dax`** -- DAX user-defined functions (Power BI
+Desktop/Service, June 2026 GA onward): `TidalForecast`, `ApproxDensity`,
+`SoundSpeedMackenzie`. These are model-level functions you can call
+from any measure.
+>>>>>>> b557a84ba46aac06946abdc11f6c953812703833
 
 ## Tides: what has to happen before you can forecast
 
@@ -78,6 +93,7 @@ publicly documented equation, not a derived/fitted result, so there's
 no equivalent "external fit" step needed here -- it just has a
 validity range to keep in mind.
 
+<<<<<<< HEAD
 ## QC flag caveat
 
 `fn_QCFlag.m` only does a range test (is the value within valid
@@ -87,6 +103,26 @@ want spike detection too, it would need to run as a step over the
 whole column (e.g. comparing each row to the previous/next in a
 Power Query table transform) rather than as a simple per-value
 function like this one.
+=======
+## QC flag
+
+`fn_QCFlag.m` checks a single numeric measurement -- e.g. a
+temperature, salinity, elevation, or current speed reading -- against
+a valid range you supply, and returns a flag: `1` (pass) if the value
+falls within `ValidMin`/`ValidMax`, `4` (fail) if it's outside that
+range or blank/null. The valid range is up to you to set per
+variable (e.g. temperature might be 0-35°C, salinity 0-40 PSU) --
+the function itself has no built-in sense of what's "normal" for any
+particular measurement.
+
+**Caveat:** it only does this range check -- it does not detect
+spikes (a value that jumps abnormally compared to its neighbours),
+since that needs access to adjacent rows, not just a single cell.
+If you also want spike detection, that would need to run as a
+separate step over the whole column (e.g. comparing each row to the
+one before/after it in a Power Query table transform) rather than as
+a simple per-value function like this one.
+>>>>>>> b557a84ba46aac06946abdc11f6c953812703833
 
 ## Unit conversions
 
@@ -95,6 +131,7 @@ conversions (or, for dbar-to-metres, the standard oceanographic
 approximation that 1 dbar ≈ 1 m) -- no caveats beyond what's noted in
 each file's comments.
 
+<<<<<<< HEAD
 ## Distance between coordinates
 
 `fn_HaversineDistance.m` / `HaversineDistance` (DAX) calculate the
@@ -126,6 +163,8 @@ function.
   UDFs, since the DAX UDF feature itself only reached general
   availability in June 2026.
 
+=======
+>>>>>>> b557a84ba46aac06946abdc11f6c953812703833
 ## Licensing
 
 Everything here is original formulas or hand-written M/DAX -- no
