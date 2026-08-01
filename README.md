@@ -191,9 +191,9 @@ row, `MAXX` just returns that row's result -- the "Max" part is
 only doing real comparison work if more than one row (and more
 than one distinct classification) is in context.
 
-**Generic pattern -- list of distinct results across a range**
-(e.g. every water mass a station's full depth profile passes
-through, ordered shallow to deep):
+**Generic pattern -- depth-labelled list across a range** (e.g.
+every water mass a station's full depth profile passes through,
+ordered shallow to deep, with the depth each one first appears at):
 
 ```dax
 Water Masses Present = 
@@ -208,28 +208,38 @@ VAR SummaryTable =
         [WM],
         "MinDepth", MIN(MyTable[DepthColumn])
     )
-RETURN
-    CONCATENATEX(
+VAR WithLabel =
+    ADDCOLUMNS(
         SummaryTable,
-        [WM],
-        "; ",
+        "Label", "From " & FORMAT([MinDepth], "0") & " m: " & [WM]
+    )
+VAR DepthList =
+    CONCATENATEX(
+        WithLabel,
+        [Label],
+        UNICHAR(10),
         [MinDepth], ASC
     )
+RETURN
+    "The water mass changes according to depth." & UNICHAR(10) & DepthList
 ```
 
 `ADDCOLUMNS` computes the classification per row; `SUMMARIZE`
-genuinely groups by the resulting text (collapsing duplicates);
-`CONCATENATEX` joins the distinct groups into one readable string,
-ordered by each group's shallowest depth so the result reads
-surface-to-bottom rather than in whatever order the engine happens
-to process rows.
+genuinely groups by the resulting text (collapsing duplicates) and
+captures each group's shallowest depth; a second `ADDCOLUMNS` builds
+a "From X m: [name]" label per group; `CONCATENATEX` joins them with
+a line break (`UNICHAR(10)`), ordered shallow to deep, under a fixed
+opening sentence. Note: this will only render as multiple lines in
+visuals that support text wrapping (Table, Multi-row card, a text box
+bound to the measure) -- a plain Card visual typically ignores the
+line breaks and shows one run-on line instead.
 
 **Simpler alternative: classify in Power Query instead.** If you're
 already loading data through Power Query, calling
 `fn_ClassifyWaterMass.m` as a calculated column at refresh time
-avoids all of the above -- the column already exists per row by the
-time DAX sees it, so `SUMMARIZE` can group on the real column
-directly with no `ADDCOLUMNS`/iterator step needed:
+avoids the `ADDCOLUMNS`/iterator step above -- the column already
+exists per row by the time DAX sees it, so `SUMMARIZE` can group on
+the real column directly:
 
 ```dax
 Water Masses Present (from PQ column) = 
@@ -239,19 +249,28 @@ VAR SummaryTable =
         MyTable[WaterMass],
         "MinDepth", MIN(MyTable[DepthColumn])
     )
-RETURN
-    CONCATENATEX(
+VAR WithLabel =
+    ADDCOLUMNS(
         SummaryTable,
-        MyTable[WaterMass],
-        "; ",
+        "Label", "From " & FORMAT([MinDepth], "0") & " m: " & MyTable[WaterMass]
+    )
+VAR DepthList =
+    CONCATENATEX(
+        WithLabel,
+        [Label],
+        UNICHAR(10),
         [MinDepth], ASC
     )
+RETURN
+    "The water mass changes according to depth." & UNICHAR(10) & DepthList
 ```
 
 This version also runs faster on larger datasets, since the
 classification is computed once at refresh rather than recomputed
-by DAX on every visual interaction.
-
+by DAX on every visual interaction. Both patterns should produce
+identical output for the same data -- if they ever diverge, that's
+a signal the DAX UDF and the `.m` file's classification logic have
+drifted out of sync with each other.
 ## QC flag
 
 `fn_QCFlag.m` checks a single numeric measurement -- e.g. a
