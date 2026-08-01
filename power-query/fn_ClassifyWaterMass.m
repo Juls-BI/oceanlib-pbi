@@ -63,6 +63,6 @@ let
         else if T < 10 and S < 34.3 then
             "Subpolar Surface Water (generic)"
         else
-            "Unclassified / mixed. The T-S pair falls outside every defined water-mass range."
+            "Unclassified / mixed"
 in
     Result
