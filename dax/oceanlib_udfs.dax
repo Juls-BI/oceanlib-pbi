@@ -378,7 +378,7 @@ FUNCTION ClassifyWaterMass = (
                 "Subtropical Surface Water (generic)",
             T < 10 && S < 34.3,
                 "Subpolar Surface Water (generic)",
-            "Unclassified / mixed. The T-S pair falls outside every defined water-mass range."
+            "Unclassified / mixed."
         )
 
 EVALUATE
