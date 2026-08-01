@@ -347,7 +347,9 @@ EVALUATE
 DEFINE
 /// Classifies a temperature/salinity pair against published
 /// water-mass T-S ranges (a simplified alternative to a full
-/// optimum multiparameter mixing analysis).
+/// optimum multiparameter mixing analysis). Full sourcing and
+/// caveats for each category are documented in the README, not
+/// repeated in the returned text.
 /// @param {NUMERIC} TemperatureC - in-situ (or potential) temperature, deg C
 /// @param {NUMERIC} SalinityPSU - practical salinity
 /// @returns Water mass name (text), or "Unclassified / mixed" if no match
@@ -364,20 +366,24 @@ FUNCTION ClassifyWaterMass = (
                 "Antarctic Bottom Water (AABW)",
             T > 2 && T <= 3.5 && S >= 34.90 && S <= 34.97,
                 "North Atlantic Deep Water (NADW)",
+            T >= 4.5 && T <= 8.0 && S >= 33.7 && S <= 34.0,
+                "North Pacific Intermediate Water (NPIW)",
             T > 3 && T <= 7 && S >= 33.8 && S <= 34.5,
                 "Antarctic Intermediate Water (AAIW)",
             T >= 10.5 && T <= 14 && S >= 36.5 && S <= 37.5,
-                "Mediterranean Water (MW) -- Gulf of Cadiz values",
+                "Mediterranean Water (MW)",
             T >= 5.0 && T <= 18.0 && S >= 34.3 && S <= 35.8,
                 "North Atlantic Central Water (NACW)",
             T >= 20 && S >= 36,
-                "Subtropical Surface Water (generic, uncited) -- evaporation-dominated",
+                "Subtropical Surface Water (generic)",
             T < 10 && S < 34.3,
-                "Subpolar Surface Water (generic, uncited) -- precipitation/melt-dominated",
-            "Unclassified / mixed -- outside defined reference ranges"
+                "Subpolar Surface Water (generic)",
+            "Unclassified / mixed. The T-S pair falls outside every defined water-mass range."
         )
 
 EVALUATE
 { ClassifyWaterMass(1.5, 34.8) }   // expect: Antarctic Bottom Water (AABW)
 EVALUATE
 { ClassifyWaterMass(3.0, 34.95) }  // expect: North Atlantic Deep Water (NADW)
+EVALUATE
+{ ClassifyWaterMass(5.5, 33.85) }  // expect: North Pacific Intermediate Water (NPIW)
