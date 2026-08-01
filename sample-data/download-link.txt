@@ -1,0 +1,29 @@
+## Sample data
+
+The station lookup file (`CalCOFIStationOrder.csv`) is small enough
+to include directly in this repo -- see `sample-data/`.
+
+The temperature/salinity bottle data is not included here, since even
+a filtered extract exceeds GitHub's practical file size limits.
+Instead, download it directly from the source:
+
+**Download:** [CalCOFI_Database_194903-202105_csv_16October2023.zip](https://calcofi.org/downloads/database/CalCOFI_Database_194903-202105_csv_16October2023.zip)
+(~36 MB)
+
+**Citation:**
+> CalCOFI (California Cooperative Oceanic Fisheries Investigations).
+> *CalCOFI Hydrographic (Bottle) Database, 1949-2021*. Scripps
+> Institution of Oceanography / NOAA Fisheries / California
+> Department of Fish and Wildlife. Available at:
+> https://calcofi.org/data/oceanographic-data/bottle-database/
+
+After downloading, unzip and either:
+- Filter to one or two stations before pointing the `.pbit` template
+  at it (recommended -- the full database is large and the template
+  is built around single-station depth profiles), or
+- Point the template directly at the full `194903_Bottle.csv` /
+  similar file if you want to explore multiple stations via the
+  Select Station slicer.
+
+See [How to use this template](#how-to-use-this-template) below for
+the exact file-path parameters the template expects.
