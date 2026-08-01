@@ -25,14 +25,20 @@ Desktop, then invoked as a custom column or standalone step.
 | `fn_DestinationPoint.m`                                 | Destination lat/lon given a start point, bearing, and distance    |
 
 **`dax/oceanlib_udfs.dax`** -- DAX user-defined functions (Power BI
-Desktop/Service, June 2026 GA onward): `TidalForecast`, `ApproxDensity`,
-`SoundSpeedMackenzie`, `PracticalSalinity`, `ClassifyWaterMass`,
-`HaversineDistance`, `InitialBearing`, `DestinationLat`, `DestinationLon`.
-Also includes `Atan2`, an internal helper (DAX has no native ATAN2) that
-the bearing/distance/destination functions call internally -- not
-meant to be called directly, but documented since it's a model-level
-function like the others. These are model-level functions you can
-call from any measure.
+Desktop/Service, June 2026 GA onward). All functions live in this one
+file; these are model-level functions you can call from any measure.
+
+| Function                           | Does                                                                |
+| ----------------------------------- | -------------------------------------------------------------------- |
+| `TidalForecast`                     | Reconstructs tide height from a loaded harmonic constituents table   |
+| `ApproxDensity`                     | Simplified seawater density estimate                                 |
+| `SoundSpeedMackenzie`               | Speed of sound in seawater (Mackenzie 1981 formula)                  |
+| `PracticalSalinity`                 | Practical salinity from conductivity ratio (PSS-78, UNESCO 1981)     |
+| `ClassifyWaterMass`                 | Water mass ID from a T-S pair (range lookup vs. published envelopes) |
+| `HaversineDistance`                 | Great-circle distance between two lat/lon points                     |
+| `InitialBearing`                    | Initial bearing (forward azimuth) between two lat/lon points         |
+| `DestinationLat`, `DestinationLon`  | Destination lat/lon given a start point, bearing, and distance       |
+| `Atan2`                             | Internal helper (DAX has no native ATAN2) -- not meant to be called directly, used internally by the bearing/distance/destination functions |
 
 > **Note:** `ApproxDensity` currently has two definitions with
 > different signatures floating around in draft versions of this file
@@ -215,4 +221,5 @@ value; call both with the same inputs to get a full coordinate pair.
 
 Everything here is original formulas or hand-written M/DAX -- no
 third-party code included, so there's nothing to attribute or license
-beyond your own choice for this repo.
+beyond your own choice for this repo. Licensed under MIT (see
+[LICENSE](LICENSE)).
