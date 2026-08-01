@@ -288,5 +288,50 @@ FUNCTION PracticalSalinity = (
     RETURN
         BaseTerm + TempCorrection
 
+
 EVALUATE
 { PracticalSalinity(1.0, 15) }  // R=1.0 at T=15C should return ~35 PSU
+
+
+// ---------------------------------------------------------------
+// Simplified linearised approximation of seawater density (kg/m3).
+// NOT the full TEOS-10 equation of state -- a large polynomial fit
+// impractical to hand-code in DAX. Own linearisation around a
+// reference point, not a derivation of a published standard.
+// ---------------------------------------------------------------
+DEFINE
+/// Approximate seawater density via linearisation around a reference
+/// point (T0 = 10 degC, S0 = 35 PSU, Rho0 = 1025 kg/m3), using
+/// representative thermal expansion / haline contraction coefficients,
+/// plus a small linear correction for pressure increase with depth.
+/// Valid roughly for T: 0 to 30 degC, S: 30 to 40 PSU -- accuracy
+/// degrades near freezing and in fresh/brackish water. Does not
+/// capture cabbeling or thermobaric effects. Good for a rough
+/// estimate or in-model comparison; not for anything feeding a
+/// scientific calculation downstream -- use TEOS-10 GSW for that.
+/// @param {NUMERIC} Salinity - Practical salinity, PSU
+/// @param {NUMERIC} TemperatureC - In-situ temperature, deg C
+/// @param {NUMERIC} Depth - Depth, metres
+/// @returns Approximate density, kg/m3
+FUNCTION ApproxDensity = (
+    Salinity : NUMERIC,
+    TemperatureC : NUMERIC,
+    Depth : NUMERIC
+) =>
+    VAR T = TemperatureC
+    VAR S = Salinity
+    VAR D = Depth
+    VAR Rho0 = 1025
+    VAR T0 = 10
+    VAR S0 = 35
+    VAR Alpha = 0.0002    // per degC
+    VAR Beta = 0.00076    // per PSU
+    VAR Kappa = 0.0045    // kg/m3 per metre
+    VAR Density =
+        Rho0
+        * (1 - Alpha * (T - T0) + Beta * (S - S0))
+        + Kappa * D
+    RETURN
+        Density
+EVALUATE
+{ ApproxDensity(35, 10, 0) }  // S=S0, T=T0, D=0 should return exactly 1025
