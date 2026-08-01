@@ -1,29 +1,33 @@
-## Sample data
+SAMPLE DATA
+===========
 
-The station lookup file (`CalCOFIStationOrder.csv`) is small enough
-to include directly in this repo -- see `sample-data/`.
+The station lookup file (CalCOFIStationOrder.csv) is included
+directly in this folder.
 
-The temperature/salinity bottle data is not included here, since even
-a filtered extract exceeds GitHub's practical file size limits.
-Instead, download it directly from the source:
+The temperature/salinity bottle data is NOT included here, since
+even a filtered extract exceeds GitHub's practical file size limits.
+Instead, download it directly from the source below.
 
-**Download:** [CalCOFI_Database_194903-202105_csv_16October2023.zip](https://calcofi.org/downloads/database/CalCOFI_Database_194903-202105_csv_16October2023.zip)
+DOWNLOAD:
+https://calcofi.org/downloads/database/CalCOFI_Database_194903-202105_csv_16October2023.zip
 (~36 MB)
 
-**Citation:**
-> CalCOFI (California Cooperative Oceanic Fisheries Investigations).
-> *CalCOFI Hydrographic (Bottle) Database, 1949-2021*. Scripps
-> Institution of Oceanography / NOAA Fisheries / California
-> Department of Fish and Wildlife. Available at:
-> https://calcofi.org/data/oceanographic-data/bottle-database/
+CITATION:
+CalCOFI (California Cooperative Oceanic Fisheries Investigations).
+CalCOFI Hydrographic (Bottle) Database, 1949-2021. Scripps
+Institution of Oceanography / NOAA Fisheries / California
+Department of Fish and Wildlife.
+Available at: https://calcofi.org/data/oceanographic-data/bottle-database/
 
-After downloading, unzip and either:
-- Filter to one or two stations before pointing the `.pbit` template
-  at it (recommended -- the full database is large and the template
-  is built around single-station depth profiles), or
-- Point the template directly at the full `194903_Bottle.csv` /
-  similar file if you want to explore multiple stations via the
-  Select Station slicer.
+AFTER DOWNLOADING:
+Unzip the file, then either:
 
-See [How to use this template](#how-to-use-this-template) below for
-the exact file-path parameters the template expects.
+1. Filter to one or two stations before pointing the .pbit template
+   at it (recommended -- the full database is large, and the
+   template is built around single-station depth profiles), or
+
+2. Point the template directly at the full bottle CSV file if you
+   want to explore multiple stations via the Select Station slicer.
+
+See the "How to use this template" section in the main README.md
+for the exact file-path parameters the template expects.
