@@ -154,6 +154,104 @@ and with mixing, so for real work, verify these ranges against
 literature for your actual region rather than relying on this
 general-purpose version.
 
+## Calling ClassifyWaterMass from a measure
+
+[#calling-classifywatermass-from-a-measure](#calling-classifywatermass-from-a-measure)
+
+`ClassifyWaterMass` returns **text**, which makes it behave differently
+from `ApproxDensity` and `SoundSpeedMackenzie` in two ways that aren't
+obvious the first time you try to use it in a measure:
+
+1. **A measure has no row context on its own.** Calling
+   `ClassifyWaterMass(MyTable[T_degC], MyTable[Salnty])` directly
+   inside a measure will fail to resolve or error out, because a
+   measure doesn't have an implicit "current row" the way a
+   calculated column does. You need to wrap the call in an
+   iterator (`MAXX`, `SUMX`, `ADDCOLUMNS`, etc.) to manufacture
+   that row context.
+2. **You can't average text.** `AVERAGEX` works for `ApproxDensity`
+   and `SoundSpeedMackenzie` because they return numbers. It will
+   fail (or return blank) for `ClassifyWaterMass`, since there's no
+   such thing as the "average" of two water mass names.
+
+**Generic pattern -- single result** (e.g. one station/depth
+already selected, and you just want that one classification):
+
+```dax
+Water Mass = 
+MAXX(
+    MyTable,
+    ClassifyWaterMass(MyTable[TemperatureColumn], MyTable[SalinityColumn])
+)
+```
+
+`MAXX` iterates row by row to give the UDF row context, then
+returns a single value. If the filter context only contains one
+row, `MAXX` just returns that row's result -- the "Max" part is
+only doing real comparison work if more than one row (and more
+than one distinct classification) is in context.
+
+**Generic pattern -- list of distinct results across a range**
+(e.g. every water mass a station's full depth profile passes
+through, ordered shallow to deep):
+
+```dax
+Water Masses Present = 
+VAR PerRow =
+    ADDCOLUMNS(
+        MyTable,
+        "WM", ClassifyWaterMass(MyTable[TemperatureColumn], MyTable[SalinityColumn])
+    )
+VAR SummaryTable =
+    SUMMARIZE(
+        PerRow,
+        [WM],
+        "MinDepth", MIN(MyTable[DepthColumn])
+    )
+RETURN
+    CONCATENATEX(
+        SummaryTable,
+        [WM],
+        "; ",
+        [MinDepth], ASC
+    )
+```
+
+`ADDCOLUMNS` computes the classification per row; `SUMMARIZE`
+genuinely groups by the resulting text (collapsing duplicates);
+`CONCATENATEX` joins the distinct groups into one readable string,
+ordered by each group's shallowest depth so the result reads
+surface-to-bottom rather than in whatever order the engine happens
+to process rows.
+
+**Simpler alternative: classify in Power Query instead.** If you're
+already loading data through Power Query, calling
+`fn_ClassifyWaterMass.m` as a calculated column at refresh time
+avoids all of the above -- the column already exists per row by the
+time DAX sees it, so `SUMMARIZE` can group on the real column
+directly with no `ADDCOLUMNS`/iterator step needed:
+
+```dax
+Water Masses Present (from PQ column) = 
+VAR SummaryTable =
+    SUMMARIZE(
+        MyTable,
+        MyTable[WaterMass],
+        "MinDepth", MIN(MyTable[DepthColumn])
+    )
+RETURN
+    CONCATENATEX(
+        SummaryTable,
+        MyTable[WaterMass],
+        "; ",
+        [MinDepth], ASC
+    )
+```
+
+This version also runs faster on larger datasets, since the
+classification is computed once at refresh rather than recomputed
+by DAX on every visual interaction.
+
 ## QC flag
 
 `fn_QCFlag.m` checks a single numeric measurement -- e.g. a
