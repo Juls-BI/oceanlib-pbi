@@ -79,29 +79,6 @@ EVALUATE
 
 
 // ---------------------------------------------------------------
-// Simplified density lookup (same formula as fn_ApproxDensity.m) --
-// use whichever of the DAX or M version fits where you need it in
-// your model/query.
-// ---------------------------------------------------------------
-DEFINE
-/// Rough linearised seawater density estimate (kg/m^3).
-/// @param {NUMERIC} TemperatureC - in-situ temperature, deg C
-/// @param {NUMERIC} SalinityPSU - practical salinity
-/// @returns Approximate density, kg/m^3
-FUNCTION ApproxDensity = (
-    TemperatureC : NUMERIC,
-    SalinityPSU : NUMERIC
-) =>
-    1000
-    + 0.78 * SalinityPSU
-    - 0.20 * TemperatureC
-    - 0.0055 * POWER(TemperatureC, 2)
-
-EVALUATE
-{ ApproxDensity(12, 35) }
-
-
-// ---------------------------------------------------------------
 // Mackenzie sound speed (same formula as fn_SoundSpeedMackenzie.m)
 // ---------------------------------------------------------------
 DEFINE
@@ -341,7 +318,7 @@ EVALUATE
 // Simplified water mass classification from a T-S pair (range
 // lookup against published water-mass envelopes -- see
 // fn_ClassifyWaterMass.m and the README for full citations and the
-// note that two of the seven categories are uncited generic buckets,
+// note that two of the eight categories are uncited generic buckets,
 // not sourced from a specific water mass reference).
 // ---------------------------------------------------------------
 DEFINE
