@@ -269,6 +269,45 @@ and with mixing, so for real work, verify these ranges against
 literature for your actual region rather than relying on this
 general-purpose version.
 
+## Geographic scope caveat (why there's no location gating)
+
+[#geographic-scope-caveat](#geographic-scope-caveat)
+
+`ClassifyWaterMass` deliberately does **not** take latitude or
+longitude as inputs, and this was a considered decision, not an
+oversight. An earlier draft explored gating basin-specific water
+masses (NADW, MW, NACW, NPIW) by a simple longitude cutoff -- e.g.
+treating anything outside roughly -80 to 20 degrees as "not the
+Atlantic" -- but this turned out to be scientifically wrong, not
+just imprecise.
+
+Water masses don't respect basin boundaries. NADW, for example,
+spreads via the Southern Ocean into the Indian and Pacific Oceans as
+part of the global thermohaline circulation, with equivalent
+thicknesses exceeding 250m estimated throughout most of the deep
+basins of the Indian and Pacific -- and it partially returns toward
+the Atlantic as intermediate water on the way. AABW similarly spreads
+northward from Antarctica to fill the majority of the abyssal Indian
+and Pacific Oceans. A hard longitude gate would have incorrectly
+ruled out these classifications at exactly the depths and locations
+where the published literature says they can genuinely appear.
+
+The real driver of whether a "clean" water-mass signature is present
+is depth and how far the water has travelled and mixed along its
+circulation pathway, not a simple geographic boundary -- and that's
+already what the T-S range check is trying to capture, imperfectly,
+without needing a separate location rule bolted on.
+
+**What this means in practice:** a classification returned by this
+function should be treated as "this T-S pair matches a published
+signature" rather than "this location is confirmed to contain this
+water mass." For any real analysis, cross-check a result against
+regional oceanographic literature for the actual area you're working
+in, rather than trusting the classification alone -- especially for
+readings far from where a water mass forms, where it's more likely
+to be diluted, mixed, or coincidentally overlapping another range
+entirely by chance.
+
 ## Calling ClassifyWaterMass from a measure
 
 [#calling-classifywatermass-from-a-measure](#calling-classifywatermass-from-a-measure)
